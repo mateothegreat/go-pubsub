@@ -1,38 +1,39 @@
-package queues
+package subscribers
 
 import (
 	"crypto/rand"
-	"fmt"
 	"log"
 	"sync"
+
+	"github.com/mateothegreat/go-pubsub/types"
 )
 
 type Subscriber[T any] struct {
-	ID       string           // id of subscriber
-	Messages chan *Message[T] // messages channel
-	Topics   map[string]bool  // topics it is subscribed to.
-	Active   bool             // if given subscriber is active
-	Mutex    sync.RWMutex     // lock
+	ID       string                 // id of subscriber
+	Messages chan *types.Message[T] // messages channel
+	Topics   map[string]bool        // topics it is subscribed to.
+	Active   bool                   // if given subscriber is active
+	Mutex    sync.RWMutex           // lock
 }
 
-func CreateNewSubscriber[T any]() (*Subscriber[T], error) {
-	// returns a new subscriber.
+// CreateNewSubscriber creates a new subscriber.
+func CreateNewSubscriber[T any](ID string) (*Subscriber[T], error) {
 	b := make([]byte, 8)
 	_, err := rand.Read(b)
 	if err != nil {
 		log.Fatal(err)
 	}
-	id := fmt.Sprintf("%X-%X", b[0:4], b[4:8])
+
 	return &Subscriber[T]{
-		ID:       id,
-		Messages: make(chan *Message[T]),
+		ID:       ID,
+		Messages: make(chan *types.Message[T]),
 		Topics:   map[string]bool{},
 		Active:   true,
 	}, nil
 }
 
+// AddTopic adds a topic to the subscriber.
 func (s *Subscriber[T]) AddTopic(topic string) {
-	// add topic to the subscriber
 	s.Mutex.RLock()
 	defer s.Mutex.RUnlock()
 	s.Topics[topic] = true
@@ -50,7 +51,7 @@ func (s *Subscriber[T]) GetTopics() []string {
 	s.Mutex.RLock()
 	defer s.Mutex.RUnlock()
 	topics := []string{}
-	for topic, _ := range s.Topics {
+	for topic := range s.Topics {
 		topics = append(topics, topic)
 	}
 	return topics
@@ -64,7 +65,7 @@ func (s *Subscriber[T]) Destruct() {
 	close(s.Messages)
 }
 
-func (s *Subscriber[T]) Signal(msg *Message[T]) {
+func (s *Subscriber[T]) Signal(msg *types.Message[T]) {
 	// Gets the message from the channel
 	s.Mutex.RLock()
 	defer s.Mutex.RUnlock()
