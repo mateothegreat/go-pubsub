@@ -15,7 +15,11 @@ type TestMessage struct {
 func TestMain(t *testing.T) {
 	broker := NewBroker[TestMessage]()
 
-	s1 := broker.AddSubscriber()
+	subscriber, err := broker.CreateSubscriber("asdf")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	broker.Subscribe(s1, "topic1")
 
 	go func() {

@@ -18,7 +18,7 @@ type Broker[T any] struct {
 	mut         sync.RWMutex              // mutex lock
 }
 
-// NewBroker returns a new broker object.
+// NewBroker returns a new broker instance with the given type for messages.
 func NewBroker[T any]() *Broker[T] {
 	return &Broker[T]{
 		subscribers: Subscribers[T]{},
@@ -26,17 +26,22 @@ func NewBroker[T any]() *Broker[T] {
 	}
 }
 
-func (b *Broker[T]) AddSubscriber() (*subscribers.Subscriber[T], error) {
-	// Add subscriber to the broker.
-	b.mut.Lock()
-	defer b.mut.Unlock()
-	s, err := subscribers.CreateNewSubscriber[T]()
+// CreateSubscriber creates a new subscriber and adds it to the broker.
+//
+// Arguments:
+//   - ID: Unique ID to identify the subscriber by.
+func (b *Broker[T]) CreateSubscriber(ID string) (*subscribers.Subscriber[T], error) {
+	b.mut.Lock()         // Acquire lock while creating the new subscriber.
+	defer b.mut.Unlock() // Release lock after creating subscriber.
+
+	subscriber, err := subscribers.CreateSubscriber[T](ID)
 	if err != nil {
 		return nil, err
 	}
 
-	b.subscribers[s.ID] = s
-	return s, nil
+	b.subscribers[subscriber.ID] = subscriber
+
+	return subscriber, nil
 }
 
 func (b *Broker[T]) RemoveSubscriber(s *subscribers.Subscriber[T]) {

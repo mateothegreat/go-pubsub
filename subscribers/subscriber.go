@@ -17,7 +17,7 @@ type Subscriber[T any] struct {
 }
 
 // CreateNewSubscriber creates a new subscriber.
-func CreateNewSubscriber[T any](ID string) (*Subscriber[T], error) {
+func CreateSubscriber[T any](ID string) (*Subscriber[T], error) {
 	b := make([]byte, 8)
 	_, err := rand.Read(b)
 	if err != nil {
