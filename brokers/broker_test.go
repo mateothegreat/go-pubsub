@@ -20,7 +20,7 @@ func TestMain(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	broker.Subscribe(s1, "topic1")
+	broker.Subscribe(subscriber, "topic1")
 
 	go func() {
 		for {
@@ -32,13 +32,13 @@ func TestMain(t *testing.T) {
 
 	go func() {
 		for range time.Tick(2 * time.Millisecond) {
-			log.Printf("Subscriber: %s, Topics: %v\n", s1.id, s1.GetTopics())
+			log.Printf("Subscriber: %s, Topics: %v\n", subscriber.ID, subscriber.GetTopics())
 
 			select {
-			case msg := <-s1.messages:
-				log.Printf("Subscriber: %s, Received: %v\n", s1.id, msg)
+			case msg := <-subscriber.Messages:
+				log.Printf("Subscriber: %s, Received: %v\n", subscriber.ID, msg)
 			default:
-				log.Printf("Subscriber: %s, No message\n", s1.id)
+				log.Printf("Subscriber: %s, No message\n", subscriber.ID)
 			}
 		}
 	}()
